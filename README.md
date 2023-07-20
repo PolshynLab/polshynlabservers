@@ -1,6 +1,6 @@
 # polshynlabservers
 
-You can find the usage in PolshynLab group wiki *Starting with LabRAD* section.
+You can find the usage in PolshynLab group wiki **Servers for Devices** section.
 
 
 ### Serial_devices_list.py
