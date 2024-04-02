@@ -46,7 +46,7 @@ def getTC(i):
     elif i % 2 == 0:
         return 10**(-5 + i/2)
     else:
-        return 3*10**(-5 + i/2)
+        return 3*10**(-5.5 + i/2)
 
 def getSensitivity(i, mode):
     """converts form the integer label used by the SR830 to a sensitivity based on the mode"""
