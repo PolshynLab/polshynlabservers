@@ -16,7 +16,7 @@
 """
 ### BEGIN NODE INFO
 [info]
-name = sr860
+name = SR860
 version = 2.7
 description =
 [startup]
