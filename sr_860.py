@@ -51,7 +51,7 @@ def getSensitivity(i):
     if i < 0:
         return getSensitivity(0)
     elif i > 27:
-        return getSensitvity(27)
+        return getSensitivity(27)
     elif i % 3 == 0:
         return 10**(-i/3)
     elif i % 3 == 1:
