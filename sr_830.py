@@ -302,6 +302,28 @@ class SR830(GPIBManagedServer):
         resp = yield dev.query('OUTP? 4')
         returnValue(float(resp))
 
+    @setting(25, 'XNoise', returns='v')
+    def xnoise(self, c):
+        """Query the value of voltage noise in X(Channel 1).
+
+        Returns:
+            (Value): The noise in X in Volts/sqrt(Hz).
+        """
+        dev = self.selectedDevice(c)
+        resp = yield dev.query('DDEF? 1,2')
+        returnValue(float(resp))
+
+    @setting(26, 'YNoise', returns='v')
+    def ynoise(self, c):
+        """Query the value of voltage noise in Y(Channel 2).
+
+        Returns:
+            (Value): The noise in Y in Volts/sqrt(Hz).
+        """
+        dev = self.selectedDevice(c)
+        resp = yield dev.query('DDEF? 2,2')
+        returnValue(float(resp))
+
     @setting(30, 'Time Constant', tc='v', returns='v')
     def time_constant(self, c, tc=None):
         """Set or get the time constant.
