@@ -588,7 +588,7 @@ class sr860Server(GPIBManagedServer):
             returnValue(int(resp))
 
     @setting(113, 'inputMode', mode = 'i', returns='i')
-    def inputMode(self, c, mode = None):
+    def input_mode(self, c, mode = None):
         ''' gets/sets the signal input to voltage (0) or current (1)
         '''
         dev = self.selectedDevice(c)
@@ -781,12 +781,12 @@ class sr860Server(GPIBManagedServer):
         Sets/gets the low pass filter slope. 0=>6, 1=>12, 2=>18, 3=>24 dB/oct
         '''
         dev = self.selectedDevice(c)
-        if i is None:
-            resp = yield dev.filter_slope()
-            returnValue(resp)
-        else:
-            resp = yield dev.filter_slope(i)
-            returnValue(resp)
+        if i is not None:
+            if i not in [0,1,2,3]:
+                raise Exception('Error: Input should be in [0,1,2,3], requested {}'.format(i))
+            resp = yield dev.write('OFSL {}'.format(i))
+        resp = yield dev.query('OFSL?')
+        returnValue(resp)
 
     @setting(132, 'Get XY', returns='*v')
     def get_xy(self, c):
@@ -804,18 +804,18 @@ class sr860Server(GPIBManagedServer):
         ans = [resp.split(',')[0], resp.split(',')[1]]
         returnValue(ans)
 
-    @setting(134, 'gnd_mode', mode='i', returns='i')
-    def gnd_mode(self, c, mode = None):
+    @setting(134, 'input_ground', mode='i', returns='i')
+    def input_ground(self, c, mode = None):
         '''
         Sets/gets voltage input shield grounding setting (grounded = 1 ; floating = 0)
         '''
         dev = self.selectedDevice(c)
-        if mode is None:
-            resp = yield dev.gnd_mode()
-            returnValue(resp)
-        else:
-            resp = yield dev.gnd_mode(mode)
-            returnValue(resp)
+        if mode is not None:
+            if mode not in [0,1]:
+                raise Exception('Error: Voltage input shield must be 0 for floating and 1 for grounded, requested: {}'.format(mode))
+            yield dev.write('IGND {}'.format(mode))
+        resp = yield dev.query('IGND?')
+        returnValue(resp)
 
     @setting(135, 'sig_lvl', returns='i')
     def sig_lvl(self, c):
@@ -823,7 +823,7 @@ class sr860Server(GPIBManagedServer):
         Queries the signal strength and returns an integer from 0 (low signal strength) to 4 (overload)
         '''
         dev = self.selectedDevice(c)
-        resp = yield dev.sig_lvl()
+        resp = yield dev.query('ILVL?')
         returnValue(resp)
 
     @setting(136, 'curr_gain', gain='i', returns='i')
@@ -832,12 +832,12 @@ class sr860Server(GPIBManagedServer):
         Sets/gets intput current gain (0 = 1MOhm [1uA] ; 1 = 100MOhm [10nA])
         '''
         dev = self.selectedDevice(c)
-        if gain is None:
-            resp = yield dev.curr_gain()
-            returnValue(resp)
-        else:
-            resp = yield dev.curr_gain(gain)
-            returnValue(resp)
+        if gain is not None:
+            if gain not in [0,1]:
+                raise Exception('Error: Gain must be 0(1MOhm) [1uA] or 1(100MOhm) [10nA], requested: {}'.format(gain))
+            yield dev.write('ICUR {}'.format(gain))
+        resp = yield dev.query('ICUR?')
+        returnValue(resp)
 
     @setting(137, 'sensitivity_up', returns='v')
     def sensitivity_up(self, c):
