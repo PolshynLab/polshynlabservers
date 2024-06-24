@@ -359,6 +359,178 @@ class SIM900Server(DeviceServer):
         dev=self.selectedDevice(c)
         yield dev.write('SNDT %s,"*RST"\r'%channel)
 
+    @setting(320, channel='i', count='i', returns='s')
+    def read_voltage(self, c, channel, count=1):
+        """
+        Read voltage for a specific channel(SIM 970).
+        
+        Parameters:
+        channel (int): The channel number (1-4, 0 for all).
+        count (int): Number of successive readings to return (1 to 65535, 0 for continuous).
+        
+        Returns:
+        str: Measured voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VOLT? %s,%s\r' % (channel, count))
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(321, channel='i', returns='s')
+    def read_ground_voltage(self, c, channel):
+        """
+        Read ground voltage (offset correction) for a specific channel (SIM 970).
+        
+        Parameters:
+        channel (int): The channel number (1-4, 0 for all).
+        
+        Returns:
+        str: Measured ground voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VGND? %s\r' % channel)
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(322, channel='i', returns='s')
+    def read_reference_voltage(self, c, channel):
+        """
+        Read reference voltage (gain correction) for a specific channel (SIM 970).
+        
+        Parameters:
+        channel (int): The channel number (1-4, 0 for all).
+        
+        Returns:
+        str: Measured reference voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VREF? %s\r' % channel)
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(323, returns='s')
+    def stop_streaming(self, c):
+        """
+        Stop the continuous output of multiple VOLT? responses (SIM 970).
+        
+        Returns:
+        str: Response from the SIM970 module after stopping streaming.
+        """
+        dev = self.selectedDevice(c)
+        ans = yield dev.write('SOUT\r')
+        returnValue(float(ans))
+
+    @setting(324, channel='i', returns='s')
+    def set_gain(self, c, channel, gain):
+        """
+        Sets the gain of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        gain: Gain value to set (1, 2, 5, 10, 20, 50, 100).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        yield dev.write('GAIN %d\r' % gain)
+        yield dev.write('cometzir\r')
+        returnValue("Gain set to %d" % gain)
+
+    @setting(325, channel='i', returns='s')
+    def get_gain(self, c, channel):
+        """
+        Queries the gain of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to query.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('GAIN?\r')
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(326, channel='i', returns='s')
+    def set_coupling(self, c, channel, coupling):
+        """
+        Sets the input coupling of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        coupling: Coupling value to set (1 for AC, 2 for DC).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        yield dev.write('COUP %d\r' % coupling)
+        yield dev.write('cometzir\r')
+        returnValue("Coupling set to %d" % coupling)
+
+    @setting(327, channel='i', returns='s')
+    def get_coupling(self, c, channel):
+        """
+        Queries the input coupling of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to query.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('COUP?\r')
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(328, channel='i', returns='s')
+    def set_input(self, c, channel, input_val):
+        """
+        Sets the input of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        input_val: Input value to set (1 for A, 2 for A-B, 3 for Ground).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        yield dev.write('INPT %d\r' % input_val)
+        yield dev.write('cometzir\r')
+        returnValue("Input set to %d" % input_val)
+    
+    @setting(329, channel='i', returns='s')
+    def get_input(self, c, channel):
+        """
+        Queries the input of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to query.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('INPT?\r')
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+    @setting(330, channel='i', returns='s')
+    def set_shield(self, c, channel, shield):
+        """
+        Sets the input BNC shield configuration of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        shield: Shield value to set (1 for Float, 2 for Ground).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        yield dev.write('SHLD %d\r' % shield)
+        yield dev.write('cometzir\r')
+        returnValue("Shield set to %d" % shield)
+
+    @setting(331, channel='i', returns='s')
+    def get_shield(self, c, channel):
+        """
+        Queries the input BNC shield configuration of the amplifier.
+        
+        channel: Amplifier channel to query.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('SHLD?\r')
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
 __server__ = SIM900Server()
 
 if __name__ == '__main__':
