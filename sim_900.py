@@ -359,6 +359,247 @@ class SIM900Server(DeviceServer):
         dev=self.selectedDevice(c)
         yield dev.write('SNDT %s,"*RST"\r'%channel)
 
+############# Methods for SIM970 Quad DVM ###############################################################################
+       
+    #Don't change the following functions
+    @setting(401, channel='i', returns='s')
+    def read_voltage(self, c, channel, voltmeter):
+        """
+        Read voltage for a specific channel(SIM 970).
+        
+        Parameters:
+        channel: The port on which the module is connected.
+        voltmeter (int): The display number (1-4, 0 for all).
+        
+        Returns:
+        str: Measured voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VOLT? %d\r' % voltmeter)
+        #ans = yield dev.query('VOLT? 1,100\r')
+        yield dev.write('cometzir\r')
+        returnValue(ans)
+
+    @setting(402, channel='i', voltmeter='v', returns='s')
+    def read_ground_voltage(self, c, channel, voltmeter):
+        """
+        Read ground voltage (offset correction) for a specific channel (SIM 970).
+        
+        Parameters:
+        channel: The port on which the module is connected.
+        voltmeter (int): The display number (1-4, 0 for all).
+        
+        Returns:
+        str: Measured ground voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VGND? %d\r' % voltmeter)
+        yield dev.write('cometzir\r')
+        returnValue(ans)
+
+    @setting(403, channel='i', voltmeter='v', returns='s')
+    def read_reference_voltage(self, c, channel, voltmeter):
+        """
+        Read reference voltage (gain correction) for a specific channel (SIM 970).
+        
+        Parameters:
+        channel: The port on which the module is connected.
+        voltmeter (int): The display number (1-4, 0 for all).
+        Returns:
+        str: Measured reference voltage.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.query('VREF? %d\r' % voltmeter)
+        yield dev.write('cometzir\r')
+        returnValue(ans)
+
+    @setting(404, returns='s')
+    def stop_streaming(self, c, channel):
+        """
+        Stop the continuous output of multiple VOLT? responses (SIM 970).
+        Parameters:
+        channel: The port on which the module is connected.
+        Returns:
+        str: Response from the SIM970 module after stopping streaming.
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        ans = yield dev.write('SOUT\r')
+        yield dev.write('cometzir\r')
+        returnValue(float(ans))
+
+############# Methods for SIM910 JFET Preamp################################################################
+        
+    @setting(501, channel='i', returns='s')
+    def gain_amp910(self, c, channel, gain=None):
+        """
+        Sets the gain of the SIM910 JFET amplifier.
+        Queries the gain of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        gain: Gain value to set (1, 2, 5, 10, 20, 50, 100).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        if gain is not None:
+            yield dev.write('GAIN %d\r' % gain)   
+        ans = yield dev.query('GAIN?\r')
+        yield dev.write('cometzir\r')
+        returnValue("Gain set to %s" % ans)
+        
+    @setting(502, channel='i', returns='s')
+    def coupling_amp910(self, c, channel, coupling=None):
+        """
+        Sets the input coupling of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        coupling: Coupling value to set (1 for AC, 2 for DC).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        if coupling is not None:
+            yield dev.write('COUP %d\r' % coupling)   
+        ans = yield dev.query('COUP?\r')
+        yield dev.write('cometzir\r')
+        returnValue("Coupling set to %s" % ans)
+        
+    @setting(503, channel='i', returns='s')
+    def input_amp910(self, c, channel, input_val=None):
+        """
+        Sets the input of the SIM910 JFET amplifier.
+        Queries the input of the SIM910 JFET amplifier.
+        
+        channel: Amplifier channel to set.
+        input_val: Input value to set (1 for A, 2 for A-B, 3 for Ground).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        if input_val is not None:
+            yield dev.write('INPT %d\r' % input_val)  
+        ans = yield dev.query('INPT?\r')
+        yield dev.write('cometzir\r')
+        returnValue("Input set to %s" % ans)    
+        
+    @setting(504, channel='i', returns='s')
+    def shield_amp910(self, c, channel, shield=None):
+        """
+        Sets the input BNC shield configuration of the SIM910 JFET amplifier.
+        Queries the input BNC shield configuration of the amplifier.
+        
+        channel: Amplifier channel to set.
+        shield: Shield value to set (1 for Float, 2 for Ground).
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %s,"cometzir"\r' % channel)
+        if shield is not None:
+            yield dev.write('SHLD %d\r' % shield) 
+        ans = yield dev.query('SHLD?\r')
+        yield dev.write('cometzir\r')
+        returnValue("Shield set to %s" % ans)
+        
+############# Methods for SIM965 analog filter #############################################################
+    
+    @setting(6011, channel='i', returns='v')
+    def frequency_965(self, c, channel, frequency=None):
+        """
+        Set the frequency for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.set_frequency(1, 1.23)  # Frequency in Hz
+        
+        Get the frequency for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.get_frequency965(1)
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        if frequency is not None:
+            yield dev.write('FREQ %.6f\r' % frequency)
+        ans = yield dev.query('FREQ?\r')
+        yield dev.write('cometzir\r')
+        return(float(ans))
+        
+    @setting(6021, channel='i', returns='v')
+    def filter_type_965(self, c, channel, filter_type=None):
+        """
+        Set the filter type for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.set_filter_type965(1, 1)  # 0 for BUTTER and #1 for BESSEL
+        
+        Get the filter type for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.get_filter_type965(1)
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        if filter_type is not None:
+            yield dev.write('TYPE %d\r' % filter_type)
+        ans = yield dev.query('TYPE?\r')
+        yield dev.write('cometzir\r')
+        return(int(ans))
+        
+    @setting(6031, channel='i', returns='v')
+    def band_pass_965(self, c, channel, pass_band=None):
+        """
+        Set the filter pass band for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.set_pass_band965(1, 0)  # 0 for Lowpass 1 for Highpass
+        
+        Get the filter pass band for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.get_pass_band965(1)
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        if pass_band is not None:
+            yield dev.write('PASS %d\r' % pass_band)
+        ans = yield dev.query('PASS?\r')
+        yield dev.write('cometzir\r')
+        return(int(ans))
+        
+    @setting(6041, channel='i', returns='v')
+    def slope_965(self, c, channel, slope=None):
+        """
+        Set the filter slope for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.set_slope965(1, 12)  # Slope in dB/octave
+        Set the filter stop band rolloff rate to(12, 24, 36, 48) dB/octave
+        
+        Get the filter slope for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.get_slope965(1)
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        if slope is not None:
+            yield dev.write('SLPE %d\r' % slope)
+        ans = yield dev.query('SLPE?\r')
+        yield dev.write('cometzir\r')
+        return(int(ans))
+    
+    @setting(6051, channel='i', returns='v')
+    def coupling_965(self, c, channel, coupling=None):
+        """
+        Set the input coupling for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.set_coupling965(1, 0)  # 0 for AC, 1 for DC
+        
+        Get the input coupling for the specified channel on the SIM965 filter module.
+        EXAMPLE: SIM.get_coupling965(1)
+        """
+        dev = self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        if coupling is not None:
+            yield dev.write('COUP %d\r' % coupling)
+        ans = yield dev.query('COUP?\r')
+        yield dev.write('cometzir\r')
+        return(int(ans))
+
+    @setting(701, channel = 'i', returns='s')
+    def Identify(self, c, channel):
+        dev=self.selectedDevice(c)
+        yield dev.write('CONN %d,"cometzir"\r' % channel)
+        ans=yield dev.query("*IDN?\r")
+        yield dev.write('cometzir\r')
+        returnValue(ans)
+
+
+
+
+
 __server__ = SIM900Server()
 
 if __name__ == '__main__':
