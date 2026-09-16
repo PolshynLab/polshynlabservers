@@ -1521,9 +1521,9 @@ class DAC_ADCServer(DeviceServer):
         returnValue(channels)
     
     @setting(109,channel='i',time='v[]',returns='v[]')
-    def set_conversionTime(self,c,channel,time):
+    def set_conversion_time(self,c,channel,time):
         """
-        set_conversionTime(channel, time)
+        set_conversion_time(channel, time)
 
         Set one ADC channel's conversion time.
 
@@ -1539,7 +1539,7 @@ class DAC_ADCServer(DeviceServer):
 
         Example:
             Setting ADC input 0 conversion time to 500 us.
-            actual_us = dac.set_conversionTime(0, 500.0)
+            actual_us = dac.set_conversion_time(0, 500.0)
         """
         #if not (channel in self.channels):
         #    returnValue("Error: invalid channel. Must be in 0,1,2,3")
@@ -1552,10 +1552,33 @@ class DAC_ADCServer(DeviceServer):
         returnValue(float(ans))
     
     @setting(134,channel='i',fw='i',returns='v[]')
-    def set_conversionTimeFW(self,c,channel,fw):
+    def set_conversion_time_fw(self,c,channel,fw):
         """
-        CONVERT_TIME sets the conversion time for the ADC. The conversion time is the time the ADC takes to convert the analog signal to a digital signal.
-        Keep in mind that the smaller the conversion time, the more noise your measurements will have. Maximum conversion time: 2686 microseconds. Minimum conversion time: 82 microseconds.
+        set_conversion_time_fw(channel, fw)
+
+        Set ADC conversion time using an integer filter word (FW).
+
+        The filter word is the ADC's digital-filter register setting, not a time
+        in microseconds. Larger values give longer conversions and usually less
+        noise. This selects the same hardware setting as set_conversion_time,
+        but bypasses conversion from a requested time to the nearest filter word.
+
+        Parameters:
+            channel : int: ADC channel, 0 through 7.
+            fw : int: Filter word, 3 through 127 in this server. Firmware also supports 2 with chopping enabled, but this server rejects it.
+
+        Timing:
+            Chopping enabled, one active channel: time_us = (128 * fw + 248) / 6.144; step = 20.833 us.
+            Chopping disabled, one active channel: time_us = (64 * fw + 207) / 6.144; step = 10.417 us.
+            With multiple channels active on the same ADC board, replace 248 with 249, or 207 with 206, respectively.
+            The existing chopping mode is preserved. Conversion time excludes USB communication overhead.
+
+        Returns:
+            float: Actual conversion time in microseconds, not the filter word.
+
+        Example:
+            Setting ADC input 0 to FW 22 (about 498.698 us with chopping enabled and one active channel).
+            actual_us = dac.set_conversion_time_fw(0, 22)
         """
         #if not (channel in self.channels):
         #    returnValue("Error: invalid channel. Must be in 0,1,2,3")
